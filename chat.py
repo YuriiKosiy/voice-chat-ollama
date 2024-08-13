@@ -61,7 +61,7 @@ async def main():
         question = recognize_speech()
         if question:
             messages.append({"role": "user", "content": question})
-            await ask_llama(client, messages)
+            await ask_llama(client, messages[-1:])
 
 if __name__ == "__main__":
     asyncio.run(main())
