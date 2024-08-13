@@ -52,7 +52,7 @@ async def speak_response(response):
     )
     with open('response.mp3', 'wb') as file:
         file.write(result['AudioStream'].read())
-    os.system("mpg321 response.mp3")
+    os.system("mpg321 response.mp3 > /dev/null 2>&1")
 
 async def main():
     messages = []  # Ініціалізуємо історію діалогу
