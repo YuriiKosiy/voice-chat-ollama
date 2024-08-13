@@ -7,8 +7,7 @@ from ollama import AsyncClient
 # Ініціалізація клієнта Amazon Polly
 polly = boto3.client('polly', region_name='us-west-2')
 
-async def ask_llama(messages):
-    client = AsyncClient()
+async def ask_llama(client, messages):
     response_stream = await client.chat(model="llama3.1:8b", messages=messages, stream=True)
     accumulated_text = ""
     async for part in response_stream:
@@ -55,13 +54,14 @@ async def speak_response(response):
     os.system("mpg321 response.mp3 > /dev/null 2>&1")
 
 async def main():
+    client = AsyncClient()
     messages = []  # Ініціалізуємо історію діалогу
 
     while True:
         question = recognize_speech()
         if question:
             messages.append({"role": "user", "content": question})
-            await ask_llama(messages)
+            await ask_llama(client, messages)
 
 if __name__ == "__main__":
     asyncio.run(main())
