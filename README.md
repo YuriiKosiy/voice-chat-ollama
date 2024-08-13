@@ -61,21 +61,26 @@ polly = boto3.client('polly', region_name='us-west-2')
 ```
 
 ### 2. Функція для надсилання запиту до моделі Llama
-Ця функція надсилає поточну історію повідомлень до моделі Llama і отримує відповідь.
+Ця функція надсилає поточну повідомленя до моделі Llama і отримує відповідь. Також, по ідеї, така реалізація дозволяє "пам'ятати" контекст, але це не точно:
 ```python
-def ask_llama(messages):
-    client = Client()
-    response = client.chat(
-        model="llama3.1:8b", messages=messages
-    )
-    return response['message']['content']
+async def ask_llama(client, messages):
+    response_stream = await client.chat(model="llama3.1:8b", messages=messages, stream=True)
+    accumulated_text = ""
+    async for part in response_stream:
+        content = part["message"]["content"]
+        accumulated_text += content
+
+        if any(content.endswith(end) for end in [".", "!", "?"]):
+            print(accumulated_text, end="", flush=True)
+            await speak_response(accumulated_text)
+            accumulated_text = ""
 ```
 model - перевіряємо встановлення моделі ollama командою:
 ```bash
 ollama list
 ```
 ### 3. Функція для розпізнавання голосу
-Ця функція записує голос користувача через мікрофон і перетворює його в текст.
+Ця функція захоплює голос користувача через мікрофон і перетворює його в текст.
 ```python
 def recognize_speech():
     recognizer = sr.Recognizer()
@@ -98,7 +103,7 @@ def recognize_speech():
 ### 4. Функція для синтезу мови
 Ця функція використовує Amazon Polly для озвучення текстової відповіді, використовуючи формат SSML для налаштування параметрів голосу.
 ```python
-def speak_response(response):
+async def speak_response(response):
     ssml_text = f"""
     <speak>
         <prosody rate="medium" pitch="medium" volume="medium">
@@ -123,17 +128,15 @@ def speak_response(response):
 Основний цикл програми, який працює в режимі діалогу, зберігаючи контекст розмови і постійно взаємодіючи з користувачем.
 
 ```python
-def main():
+async def main():
+    client = AsyncClient()  # Ініціалізуємо клієнта один раз
     messages = []  # Ініціалізуємо історію діалогу
 
     while True:
         question = recognize_speech()
         if question:
             messages.append({"role": "user", "content": question})
-            response = ask_llama(messages)
-            print(f"Відповідь: {response}")
-            messages.append({"role": "assistant", "content": response})
-            speak_response(response)
+            await ask_llama(client, messages)
 ```
 
 ## Запуск
