@@ -6,11 +6,23 @@
 
 ### 1. Встановлення Ollama
 
-Перш за все, потрібно встановити Ollama для доступу до моделі Llama.
-
+Перш за все, потрібно встановити Ollama для доступу до моделі Llama3 (<a href="https://ollama.com/download" target="_blank">https://ollama.com/download</a>)
+```bash
+curl -fsSL https://ollama.com/install.sh | sh
+```
+Встановлюємо та запускаємо потрібну модель з сайту Ollama <a href="https://ollama.com/library" target="_blank">https://ollama.com/library</a>:
+```bash
+ollama run llama3.1
+```
+Встановлюємо підтримку ollama в python6
 ```bash
 pip install ollama
 ```
+Для перевірки чи запуску Ollama як сервіс:
+```bash
+ollama serve
+```
+
 ### 2. Встановлення AWS CLI
 
 Після цього потрібно встановити AWS CLI для доступу до сервісу Amazon Polly. (для Ubuntu подібних ОС, я користуюсь Linux Mint)
@@ -58,7 +70,10 @@ def ask_llama(messages):
     )
     return response['message']['content']
 ```
-
+model - перевіряємо встановлення моделі ollama командою:
+```bash
+ollama list
+```
 ### 3. Функція для розпізнавання голосу
 Ця функція записує голос користувача через мікрофон і перетворює його в текст.
 ```python
